@@ -1,0 +1,118 @@
+DROP TABLE book_categories CASCADE;
+DROP TABLE bookings        CASCADE;
+DROP TABLE books           CASCADE;
+DROP TABLE categories      CASCADE;
+DROP TABLE copies          CASCADE;
+DROP TABLE publishers      CASCADE;
+DROP TABLE readers         CASCADE;
+
+CREATE TABLE if not exists book_categories (
+	isbn varchar(255) not null
+		constraint book_categories_isbn_foreign
+			references books
+				on delete set null,
+	category_name varchar(255) not null
+		constraint book_categories_category_name_foreign
+			references categories
+				on delete set null,
+	created_at timestamp(0),
+	updated_at timestamp(0),
+	constraint book_categories_pkey
+		primary key (isbn, category_name)
+);
+
+CREATE TABLE bookings (
+	reader_number integer not null
+		constraint bookings_reader_number_foreign
+			references readers,
+	copy_number integer not null
+		constraint bookings_copy_number_foreign
+			references copies,
+	isbn varchar(255) not null
+		constraint bookings_isbn_foreign
+			references books,
+	return_date date not null,
+	created_at timestamp(0),
+	updated_at timestamp(0),
+	constraint bookings_pkey
+		primary key (reader_number, copy_number, isbn)
+);
+
+CREATE TABLE books (
+	isbn varchar(255) not null
+		constraint books_pkey
+			primary key
+		constraint books_isbn_unique
+			unique,
+	title varchar(255) not null,
+	year integer not null,
+	author varchar(255) not null,
+	page_count integer not null,
+	publisher_name varchar(255) not null
+		constraint books_publisher_name_foreign
+			references publishers
+				on delete set null,
+	created_at timestamp(0),
+	updated_at timestamp(0)
+);
+
+CREATE TABLE categories (
+	name varchar(255) not null
+		constraint categories_pkey
+			primary key
+		constraint categories_name_unique
+			unique,
+    parent_name varchar(255)
+		constraint categories_parent_name_foreign
+			references categories
+				on delete set null,
+	created_at timestamp(0),
+	updated_at timestamp(0)
+);
+
+CREATE TABLE copies (
+	number bigserial
+		constraint copies_pkey
+			primary key,
+	isbn varchar(255) not null
+		constraint copies_isbn_foreign
+			references books
+				on delete cascade,
+	position varchar(255) not null,
+	created_at timestamp(0),
+	updated_at timestamp(0)
+);
+
+CREATE TABLE publishers (
+	name varchar(255) not null
+		constraint publishers_pkey
+			primary key
+		constraint publishers_name_unique
+			unique,
+	address varchar(255) not null,
+	created_at timestamp(0),
+	updated_at timestamp(0)
+);
+
+CREATE TABLE readers (
+	number bigserial
+		constraint readers_pkey
+			primary key,
+	first_name varchar(255) not null,
+	last_name varchar(255) not null,
+	birthday date not null,
+	address varchar(255) not null,
+	created_at timestamp(0),
+	updated_at timestamp(0)
+);
+
+CREATE INDEX copies_isbn_index
+	on copies (isbn);
+
+ALTER TABLE book_categories owner to postgres;
+ALTER TABLE books           owner to postgres;
+ALTER TABLE bookings        owner to postgres;
+ALTER TABLE categories      owner to postgres;
+ALTER TABLE copies          owner to postgres;
+ALTER TABLE publishers      owner to postgres;
+ALTER TABLE readers         owner to postgres;
